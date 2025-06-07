@@ -12,7 +12,8 @@ module kerr_geometry
    real(kind = 8) :: spin_bh = 0.5d0      ! a 
 
    public :: set_bh_params, kerr_metric, kerr_metric_contravariant, rho_squared, delta_kerr, &
-   kerr_metric_determinant, kerr_metric_det_closed, kerr_christoffel
+   kerr_metric_determinant, kerr_metric_det_closed, kerr_christoffel, kerr_geodesic_rhs, &
+    kerr_constants_of_motion, set_circular_orbit_ic
 
    contains
 
@@ -219,5 +220,89 @@ module kerr_geometry
       christoffel(3, 3, 1) = christoffel(3, 1, 3)                            ! ^ph_phr
 
    end subroutine
+
+   ! Geodesic equations: d^2 x^mu/dtau^2 + Γ^mu_nu,lambda (dx^nu/dtau)(dx^lambda/dtau) = 0
+    subroutine kerr_geodesic_rhs(tau, y, dydt)
+        real(kind=8), intent(in) :: tau
+        real(kind=8), intent(in) :: y(8)      ! (t,r,th,ph,dt/dtau,dr/dτ\tau,dth/dtau,dph/dtau)
+        real(kind=8), intent(out) :: dydt(8)
+        
+        real(kind=8) :: pos(0:3), vel(0:3)
+        real(kind=8) :: christoffel(0:3, 0:3, 0:3)
+        integer :: mu, nu, lambda
+        
+        ! pos and vel
+        pos(0:3) = y(1:4)   ! (t, r, th, ph)
+        vel(0:3) = y(5:8)   ! (dt/dtau, dr/dtau, dth/dtau, dph/dtau)
+        
+        ! Get Christoffels at this pos
+        call kerr_christoffel(pos(1), pos(2), christoffel)
+        
+        ! First half: dx^mu/dtau = v^mu
+        dydt(1:4) = vel(0:3)
+        
+        ! Second half: d^2 x^mu/dtau^2 = -Γ^mu_nu,lambda (dx^nu/dtau)(dx^lamb/dtau)
+        do mu = 0, 3
+            dydt(5+mu) = 0.0d0
+            do nu = 0, 3
+                do lambda = 0, 3
+                    dydt(5+mu) = dydt(5+mu) - christoffel(mu,nu,lambda) * &
+                                 vel(nu) * vel(lambda)
+                end do
+            end do
+        end do
+        
+    end subroutine
+    
+    ! Constants of motion for Kerr geodesics (for accuracy checks)
+    subroutine kerr_constants_of_motion(r, theta, vel, energy, ang_mom, carter_const)
+        real(kind=8), intent(in) :: r, theta, vel(0:3)
+        real(kind=8), intent(out) :: energy, ang_mom, carter_const
+        
+        real(kind=8) :: g_covar(0:3, 0:3)
+        real(kind=8) :: rho2, delta, a2
+        
+        call kerr_metric(r, theta, g_covar)
+        
+        ! Energy: E = -g_tt * dt/dtau - g_tph * dph/dtau
+        energy = -(g_covar(0,0) * vel(0) + g_covar(0,3) * vel(3))
+        
+        ! Angular momentum: L = g_tph * dt/dtau + g_phph * dph/dtau  
+        ang_mom = g_covar(0,3) * vel(0) + g_covar(3,3) * vel(3)
+        
+        ! Carter constant (simplified? cant tell)
+        rho2 = rho_squared(r, theta)
+        delta = delta_kerr(r)
+        a2 = spin_bh**2
+        
+        carter_const = rho2**2 * vel(2)**2 + cos(theta)**2 * &
+                      (ang_mom**2 / sin(theta)**2 - a2 * energy**2)
+        
+    end subroutine
+    
+    ! init conds from orbital params
+    subroutine set_circular_orbit_ic(r_orbit, inclination, y_init)
+        real(kind=8), intent(in) :: r_orbit, inclination  
+        real(kind=8), intent(out) :: y_init(8)
+        
+        real(kind=8) :: omega, ut, uphi
+        real(kind=8) :: g_covar(0:3, 0:3)
+        
+        ! Kepler frequency GR corrected
+        omega = sqrt(mass_bh / r_orbit**3) / &
+                (1.0d0 + spin_bh * sqrt(mass_bh / r_orbit**3))
+        
+        call kerr_metric(r_orbit, inclination, g_covar)
+        
+        ! normalize: g_munu u^mu u^nu = -1 (for timelike)
+        uphi = omega
+        ut = sqrt(-(g_covar(1,1)*0.0d0**2 + g_covar(2,2)*0.0d0**2 + &
+                   g_covar(3,3)*uphi**2) / &
+                  (g_covar(0,0) + 2.0d0*g_covar(0,3)*uphi))
+        
+        ! Initial conditions: (t,r,th,ph,dt/dtau,dr/dtau,dth/dtau,dph/dtau)
+        y_init = [0.0d0, r_orbit, inclination, 0.0d0, ut, 0.0d0, 0.0d0, uphi]
+        
+    end subroutine
 
 end module
