@@ -8,26 +8,44 @@ with open("image.dat", "r") as f:
 data = []
 for line in lines[1:]:
     if line.strip():
-        row = [int(x) for x in line.split()]
+        row = [float(x) for x in line.split()]  # Note: float now
         data.extend(row)
 
 image = np.array(data).reshape((256, 256))
 
-plt.figure(figsize=(10, 10))
+# Create enhanced visualization
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
 
-plt.imshow(image, cmap="gist_heat", origin="lower", interpolation="bilinear")
-plt.title("Kerr Black Hole with Accretion Disk (a=0.9)", fontsize=16)
-plt.colorbar(label="Intensity")
+# Main image with enhanced contrast
+im1 = ax1.imshow(
+    image, cmap="hot", origin="lower", vmin=0, vmax=np.percentile(image[image > 0], 95)
+)
+ax1.set_title("Kerr Black Hole (a=0.5) - Enhanced")
+ax1.set_xlabel("Pixel X")
+ax1.set_ylabel("Pixel Y")
+plt.colorbar(im1, ax=ax1, label="Intensity")
 
-plt.xlabel("Pixel X")
-plt.ylabel("Pixel Y")
+# Contour plot to show structure
+im2 = ax2.contourf(image, levels=20, cmap="plasma")
+ax2.set_title("Contour View - Structure Analysis")
+ax2.set_xlabel("Pixel X")
+ax2.set_ylabel("Pixel Y")
+plt.colorbar(im2, ax=ax2, label="Intensity")
+
+# Add annotations for expected features
+ax1.text(
+    0.02,
+    0.98,
+    "Expected:\n• Central shadow\n• Photon sphere\n• Primary disk\n• Secondary image",
+    transform=ax1.transAxes,
+    verticalalignment="top",
+    bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
+)
 
 plt.tight_layout()
 plt.show()
 
 print(f"Image statistics:")
-print(f"  Min: {image.min()}, Max: {image.max()}")
-print(
-    f"  Pixels hitting disk: {np.sum(image > 0)} ({100*np.sum(image > 0)/image.size:.1f}%)"
-)
-print(f"  Black hole shadow: {np.sum(image == 0)} pixels")
+print(f"  Min: {image.min():.3f}, Max: {image.max():.3f}")
+print(f"  Photon sphere candidates: {np.sum((image > 1.2) & (image < 3.0))} pixels")
+print(f"  Primary disk: {np.sum(image > 3.0)} pixels")

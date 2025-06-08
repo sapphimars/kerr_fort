@@ -3,7 +3,7 @@ module ray_tracer
    implicit none
    private
 
-   public :: setup_camera, get_photon_ic
+   public :: setup_camera, get_photon_ic, calculate_photon_spheres
 
    ! cam params
    real(kind = 8) :: r_cam, theta_cam, phi_cam
@@ -99,6 +99,22 @@ module ray_tracer
       ! set final initial 4-velocity for the integrator
       y_init(5:8) = k(0:3)
 
+   end subroutine
+
+   subroutine calculate_photon_spheres(a, r_pro, r_retro)
+      real(kind = 8), intent(in) :: a
+      real(kind = 8), intent(out) :: r_pro, r_retro
+      real(kind = 8) :: rs, z_pro, z_retro
+
+      rs = 2.0d0 * mass_bh
+
+      ! For prograde (+a)
+      z_pro = cos(2.0d0 / 3.0d0 * acos(a / mass_bh))
+      r_pro = rs * (1.0d0 + z_pro)
+
+      ! For retrograde (-a)
+      z_retro = cos(2.0d0 / 3.0d0 * acos(-a / mass_bh))
+      r_retro = rs * (1.0d0 + z_retro)
    end subroutine
 
 end module
