@@ -1,45 +1,33 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Read trajectory data
-data = np.loadtxt("./trajectory.dat")
+# Load data
+with open("image.dat", "r") as f:
+    lines = f.readlines()
 
-print("First few rows of trajectory data:")
+data = []
+for line in lines[1:]:
+    if line.strip():
+        row = [int(x) for x in line.split()]
+        data.extend(row)
 
-tau = data[:, 0]  # proper time
-t = data[:, 1]  # coordinate time
-r = data[:, 2]  # radius
-theta = data[:, 3]  # polar angle
-phi = data[:, 4]  # azimuthal angle
+image = np.array(data).reshape((256, 256))
 
+plt.figure(figsize=(10, 10))
 
-# Plot r vs time to see the spiral
-plt.figure(figsize=(12, 4))
+plt.imshow(image, cmap="gist_heat", origin="lower", interpolation="bilinear")
+plt.title("Kerr Black Hole with Accretion Disk (a=0.9)", fontsize=16)
+plt.colorbar(label="Intensity")
 
-plt.subplot(1, 3, 1)
-plt.plot(tau, r)
-plt.xlabel(f"Proper time $\\tau$")
-plt.ylabel("Radius r")
-plt.title("Radial trajectory")
-plt.axhline(y=2, color="r", linestyle="--", label="Event horizon (r=2M)")
-plt.axhline(y=6, color="g", linestyle="--", label="ISCO (r=6M)")
-plt.legend()
-
-plt.subplot(1, 3, 2)
-# Convert to Cartesian for orbit plot
-x = r * np.sin(theta) * np.cos(phi)
-y = r * np.sin(theta) * np.sin(phi)
-plt.plot(x, y)
-plt.xlabel("x")
-plt.ylabel("y")
-plt.title("Orbit in x-y plane")
-plt.axis("equal")
-
-plt.subplot(1, 3, 3)
-plt.plot(tau, theta)
-plt.xlabel(f"Proper time $\\tau$")
-plt.ylabel(f"$\\theta$ (radians)")
-plt.title("Polar angle evolution")
+plt.xlabel("Pixel X")
+plt.ylabel("Pixel Y")
 
 plt.tight_layout()
 plt.show()
+
+print(f"Image statistics:")
+print(f"  Min: {image.min()}, Max: {image.max()}")
+print(
+    f"  Pixels hitting disk: {np.sum(image > 0)} ({100*np.sum(image > 0)/image.size:.1f}%)"
+)
+print(f"  Black hole shadow: {np.sum(image == 0)} pixels")
