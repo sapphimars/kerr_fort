@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 
 # Load data
 with open("image.dat", "r") as f:
@@ -11,16 +12,16 @@ for line in lines[1:]:
         row = [float(x) for x in line.split()]  # Note: float now
         data.extend(row)
 
-image = np.array(data).reshape((256, 256))
+image = np.array(data).reshape((768, 1024))
 
 # Create enhanced visualization
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 5))
 
 # Main image with enhanced contrast
 im1 = ax1.imshow(
     image, cmap="hot", origin="lower", vmin=0, vmax=np.percentile(image[image > 0], 95)
 )
-ax1.set_title("Kerr Black Hole (a=0.5) - Enhanced")
+ax1.set_title("Kerr Black Hole (a=0.9)")
 ax1.set_xlabel("Pixel X")
 ax1.set_ylabel("Pixel Y")
 plt.colorbar(im1, ax=ax1, label="Intensity")
@@ -42,7 +43,7 @@ ax1.text(
     bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
 )
 
-plt.tight_layout()
+# plt.tight_layout()
 plt.show()
 
 print(f"Image statistics:")
