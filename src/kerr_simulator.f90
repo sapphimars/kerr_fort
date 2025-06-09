@@ -9,11 +9,11 @@ program kerr_simulator
     integer, parameter :: nx = 1024
     integer, parameter :: ny = 768
     real(kind = 8), parameter :: m = 1.0d0
-    real(kind = 8), parameter :: a = 0.1d0
+    real(kind = 8), parameter :: a = 0.9d0
     real(kind = 8), parameter :: r_cam = 75.0d0
-    real(kind = 8), parameter :: theta_cam_deg = 85.0d0
+    real(kind = 8), parameter :: theta_cam_deg = 65.0d0
     real(kind = 8), parameter :: fov_deg = 25.0d0
-    integer, parameter :: max_steps = 20000
+    integer, parameter :: max_steps = 10000000
 
     ! --- Variables ---
     real(kind = 8) :: image(nx, ny)
