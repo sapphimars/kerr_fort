@@ -181,8 +181,6 @@ module kerr_geometry
       delta = r**2 - r_s * r + a2
 
       ! --- ^t components ---
-      ! ^t_tt (2.14.5a, right)
-      christoffel(0, 0, 0) = (r_s * a2 * r * sin_theta * cos_theta) / rho2**3
       ! ^t_tr (2.14.5b, left)
       christoffel(0, 0, 1) = (r_s * (r**2 + a2) * (r**2 - a2 * cos2_theta)) / (2.0d0 * rho2**2 * delta)
       christoffel(0, 1, 0) = christoffel(0, 0, 1)

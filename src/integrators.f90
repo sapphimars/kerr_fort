@@ -8,7 +8,7 @@ module integrators
 
    contains
 
-   ! 4th-order R-K step (Unchanged)
+   ! 4th-order R-K step
    subroutine rk4_step(n, t, y, h, rhs, y_new)
       integer, intent(in) :: n
       real(kind = 8), intent(in) :: t, y(n), h
@@ -62,7 +62,7 @@ module integrators
       r_far = 50.0d0 * mass_bh
       r_near = 4.0d0 * mass_bh
 
-      ! 1. Determine the base step size from radial position (as before)
+      ! 1. Determine the base step size from radial position
       if (r > r_far .and. ur > 0) then
          h_base = min(h_max, 0.001d0 * r**2)
       else if (r > r_near) then

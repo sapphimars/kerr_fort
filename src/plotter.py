@@ -12,7 +12,7 @@ for line in lines[1:]:
         row = [float(x) for x in line.split()]  # Note: float now
         data.extend(row)
 
-image = np.array(data).reshape((768, 1024))
+image = np.array(data).reshape((768, 768))
 
 # Create enhanced visualization
 fig, ax1 = plt.subplots(figsize=(10, 10))
@@ -23,7 +23,7 @@ im1 = ax1.imshow(
     cmap="hot",
     origin="lower",
     vmin=0,
-    vmax=np.percentile(image[image > 0], 95),
+    # vmax=np.percentile(image[image > 0], 95),
 )
 threshold = 0.01
 overlay_mask = (image < threshold) & (image > 0)
@@ -34,7 +34,7 @@ cmap = colors.ListedColormap(["white"])
 # im2 = ax1.imshow(red_overlay_data, origin="lower", vmin=0, cmap=cmap, alpha=1)
 
 
-ax1.set_title("Kerr Black Hole (a=0.9)")
+ax1.set_title("Kerr Black Hole (a=0.0)")
 ax1.set_xlabel("Pixel X")
 ax1.set_ylabel("Pixel Y")
 plt.colorbar(im1, ax=ax1, label="Intensity")
