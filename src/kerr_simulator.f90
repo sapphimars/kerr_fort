@@ -6,14 +6,14 @@ program kerr_simulator
    implicit none
 
    ! --- Parameters ---
-   integer, parameter :: nx = 768
-   integer, parameter :: ny = 768
+   integer, parameter :: nx = 256
+   integer, parameter :: ny = 256
    real(kind = 8), parameter :: m = 1.0d0
    real(kind = 8), parameter :: a = 0.0d0
    real(kind = 8), parameter :: r_cam = 85.0d0
-   real(kind = 8), parameter :: theta_cam_deg = 90.0d0
-   real(kind = 8), parameter :: fov_deg = 15.0d0
-   integer, parameter :: max_steps = 10000000
+   real(kind = 8), parameter :: theta_cam_deg = 75.0d0
+   real(kind = 8), parameter :: fov_deg = 45.0d0
+   integer, parameter :: max_steps = 100000000
 
 
    ! --- Variables ---
@@ -48,12 +48,14 @@ program kerr_simulator
       end if
       do i = 1, nx
 
+         x_screen = (2.0d0 * i - nx - 1.0d0) / real(nx, 8)
+         y_screen = (2.0d0 * j - ny - 1.0d0) / real(ny, 8)
 
-         call get_photon_ic((2.d0 * i - nx - 1.d0) / real(nx, 8), &
-         (2.d0 * j - ny - 1.d0) / real(ny, 8), y)
+         call get_photon_ic(x_screen, y_screen, y)
          t = 0.0d0
+
          do k = 1, max_steps
-            h = get_adaptive_step(y, r_horizon)
+            h = -0.05d0 ! get_adaptive_step(y, r_horizon)
             call rk4_step(8, t, y, h, kerr_geodesic_rhs, y_new)
             y_old = y
             y = y_new
@@ -66,15 +68,15 @@ program kerr_simulator
 
             if ((abs(y(3) - pi / 2.d0) < 1.0d-6) .and. (y(2) >= r_isco .and. y(2) <= 30.0d0)) then
                r_cross = y(2)
-               call get_disk_velocity(r_cross, a, u_disk)
-               u_photon(0:3) = y(5:8)
-               call kerr_metric(r_cross, pi / 2.d0, g_covar)
-               g_factor = g_covar(0, 0) * u_disk(0) * u_photon(0) + &
-               g_covar(3, 3) * u_disk(3) * u_photon(3) + &
-               g_covar(0, 3) * (u_disk(0) * u_photon(3) + u_disk(3) * u_photon(0))
-               doppler_boost = g_factor**(-4)
+               !call get_disk_velocity(r_cross, a, u_disk)
+               !u_photon(0:3) = y(5:8)
+               !call kerr_metric(r_cross, pi / 2.d0, g_covar)
+               !g_factor = g_covar(0, 0) * u_disk(0) * u_photon(0) + &
+               !g_covar(3, 3) * u_disk(3) * u_photon(3) + &
+               !g_covar(0, 3) * (u_disk(0) * u_photon(3) + u_disk(3) * u_photon(0))
+               !doppler_boost = g_factor**(-4)
                intensity_factor = (r_isco / r_cross)**(0.75d0)
-               image(i, j) = intensity_factor * doppler_boost
+               image(i, j) = intensity_factor ! * doppler_boost
                exit
             end if
 
@@ -83,15 +85,15 @@ program kerr_simulator
                r_cross = y_old(2) + alpha * (y(2) - y_old(2))
 
                if (r_cross >= r_isco .and. r_cross <= 30.0d0) then
-                  call get_disk_velocity(r_cross, a, u_disk)
-                  u_photon(0:3) = y(5:8)
-                  call kerr_metric(r_cross, pi / 2.d0, g_covar)
-                  g_factor = g_covar(0, 0) * u_disk(0) * u_photon(0) + &
-                  g_covar(3, 3) * u_disk(3) * u_photon(3) + &
-                  g_covar(0, 3) * (u_disk(0) * u_photon(3) + u_disk(3) * u_photon(0))
-                  doppler_boost = g_factor**(-4)
+                  !call get_disk_velocity(r_cross, a, u_disk)
+                  !u_photon(0:3) = y(5:8)
+                  !call kerr_metric(r_cross, pi / 2.d0, g_covar)
+                  !g_factor = g_covar(0, 0) * u_disk(0) * u_photon(0) + &
+                  !g_covar(3, 3) * u_disk(3) * u_photon(3) + &
+                  !g_covar(0, 3) * (u_disk(0) * u_photon(3) + u_disk(3) * u_photon(0))
+                  !doppler_boost = g_factor**(-4)
                   intensity_factor = (r_isco / r_cross)**(0.75d0)
-                  image(i, j) = intensity_factor * doppler_boost
+                  image(i, j) = intensity_factor ! * doppler_boost
                else
                   image(i, j) = 0.0d0
                end if

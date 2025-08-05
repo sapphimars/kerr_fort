@@ -12,7 +12,7 @@ for line in lines[1:]:
         row = [float(x) for x in line.split()]  # Note: float now
         data.extend(row)
 
-image = np.array(data).reshape((768, 768))
+image = np.array(data).reshape((256, 256))
 
 # Create enhanced visualization
 fig, ax1 = plt.subplots(figsize=(10, 10))
